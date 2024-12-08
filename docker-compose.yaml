@@ -8,7 +8,7 @@ services:
     volumes:
       - ./gluetun:/gluetun
     env_file:
-      - "./secrets/gluetun.env"
+      - ./secrets/gluetun.env
     environment:
       - VPN_PORT_FORWARDING=on
       - PORT_FORWARD_ONLY=true
@@ -20,7 +20,7 @@ services:
     image: slskd/slskd
     container_name: web-graffiti-slskd
     network_mode: container:web-graffiti-gluetun
-    user: "1000:100"
+    user: 1000:100
     environment:
       - SLSKD_DOWNLOADS_DIR=/media
       - SLSKD_SHARED_DIR=/media
@@ -28,7 +28,8 @@ services:
       - SLSKD_HTTP_PORT=2048
       - SLSKD_DISK_LOGGER=true
     env_file:
-      - "./secrets/slskd.env"
+      - ./secrets/slskd.env
+      - ./secrets/mysql.env
     volumes:
       - ./media:/media
       - ./slskd-config:/app
@@ -41,5 +42,14 @@ services:
     container_name: name
     depends_on:
       - web-graffiti-slskd
+      - web-graffiti-mysql
     restart: 
         always
+  web-graffiti-mysql:
+    image: mysql:8.0
+    container_name: web-graffiti-mysql
+    restart: always
+    env_file:
+      - ./secrets/mysql.env 
+    volumes:
+      - db_data:/var/lib/mysql
