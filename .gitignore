@@ -1,4 +1,5 @@
-/slskd-config
+/slskd/*
+!/slskd/slskd.yml
 /media
 /gluetun
 /secrets
