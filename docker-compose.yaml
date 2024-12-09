@@ -1,23 +1,33 @@
 version: "3.7"
+
+networks:
+  web-graffiti-network:
+    driver: bridge
+
 services:
   web-graffiti-gluetun:
     image: qmcgaw/gluetun
     container_name:  web-graffiti-gluetun
+    networks:
+      - web-graffiti-network
     cap_add:
       - NET_ADMIN
     volumes:
       - ./gluetun:/gluetun
+      - ./secrets/gluetun-auth.toml:/gluetun-auth.toml
     env_file:
       - ./secrets/gluetun.env
     environment:
       - VPN_PORT_FORWARDING=on
       - PORT_FORWARD_ONLY=true
-    network_mode: bridge
+      - SERVER_REGIONS="PANAMA"
+      - HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=/gluetun-auth.toml
     ports: 
-      - 2048:2048
+      - 5554:5554
     restart: always
+
   web-graffiti-slskd:
-    image: slskd/slskd
+    image: slskd/slskd:canary
     container_name: web-graffiti-slskd
     network_mode: container:web-graffiti-gluetun
     user: 1000:100
@@ -25,30 +35,32 @@ services:
       - SLSKD_DOWNLOADS_DIR=/media
       - SLSKD_SHARED_DIR=/media
       - SLSKD_REMOTE_CONFIGURATION=true
-      - SLSKD_HTTP_PORT=2048
+      - SLSKD_HTTP_PORT=5554
       - SLSKD_DISK_LOGGER=true
+      - SLSKD_NO_AUTH=true
+      - SLSKD_SWAGGER=true
     env_file:
       - ./secrets/slskd.env
-      - ./secrets/mysql.env
     volumes:
       - ./media:/media
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
     restart: always
+
   web-graffiti:
     build: ./web-graffiti
     container_name: web-graffiti
+    networks:
+      - web-graffiti-network
+    environment:
+      - TARGET_SIZE=1000
+    env_file:
+      - ./secrets/web-graffiti.env
+    volumes:
+      - ./slskd:/slskd
+      - ./media:/storage
     depends_on:
       - web-graffiti-slskd
-      - web-graffiti-mysql
     restart: 
         always
-  web-graffiti-mysql:
-    image: mysql:8.0
-    container_name: web-graffiti-mysql
-    restart: always
-    env_file:
-      - ./secrets/mysql.env 
-    volumes:
-      - ./db:/var/lib/mysql
