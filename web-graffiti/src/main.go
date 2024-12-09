@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -21,7 +22,10 @@ func webhookHandler (w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	port := ":8080"
 	fmt.Println("Web-Graffiti Initializing...")
+	log.Fatal(http.ListenAndServe(port, nil))
+	fmt.Printf("Server is running on port %s\n", port)
 	time.AfterFunc(3*24*time.Hour, catchAndRelease)
 	http.HandleFunc("/slskd_webhook", webhookHandler)
 }

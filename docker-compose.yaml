@@ -38,7 +38,7 @@ services:
     restart: always
   web-graffiti:
     build: ./web-graffiti
-    container_name: name
+    container_name: web-graffiti
     depends_on:
       - web-graffiti-slskd
       - web-graffiti-mysql
