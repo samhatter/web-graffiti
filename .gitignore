@@ -1,5 +1,6 @@
 /slskd/*
 !/slskd/slskd.yml
+!/slskd/Dockerfile
 /media
 /gluetun
 /secrets

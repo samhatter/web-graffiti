@@ -39,6 +39,10 @@ services:
       - SLSKD_DISK_LOGGER=true
       - SLSKD_NO_AUTH=true
       - SLSKD_SWAGGER=true
+      - SLSKD_UPLOAD_SPEED_LIMIT=100000
+      - SLSKD_DOWNLOAD_SPEED_LIMIT=100000
+      - SLSKD_UPLOAD_SLOTS=500
+      - SLSKD_DOWNLOAD_SLOTS=500
     env_file:
       - ./secrets/slskd.env
     volumes:
@@ -54,7 +58,7 @@ services:
     networks:
       - web-graffiti-network
     environment:
-      - TARGET_SIZE=100
+      - TARGET_SIZE=2
     env_file:
       - ./secrets/web-graffiti.env
     volumes:
