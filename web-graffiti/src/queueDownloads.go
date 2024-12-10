@@ -244,12 +244,13 @@ func sendSearch(search string)(string, int, error) {
 		return "", 0, fmt.Errorf("Error creating request: %v\n", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	for {
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
 			fmt.Printf("Error making POST request: %v\n", err)
+			time.Sleep(1*time.Second)
 		} else {
 			defer resp.Body.Close()
 			return data.Id, resp.StatusCode, nil
