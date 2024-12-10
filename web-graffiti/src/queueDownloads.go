@@ -15,6 +15,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type SearchRequest struct {
+	Id string `json:"id"`
+	SearchText string `json:"searchText"`
+}
+
 type File struct {
 	Filename string `json:"filename"`
 	Size int `json:"size"`
@@ -223,11 +228,6 @@ func getStorageSize()(int64){
 
 func sendSearch(search string)(string, int, error) {
 	url := "http://web-graffiti-gluetun:5554/api/v0/searches"
-		
-	type SearchRequest struct {
-		Id string `json:"id"`
-		SearchText string `json:"searchText"`
-	}
 	
 	data := SearchRequest{
 		Id: uuid.New().String(),
@@ -244,12 +244,15 @@ func sendSearch(search string)(string, int, error) {
 		return "", 0, fmt.Errorf("Error creating request: %v\n", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", 0, fmt.Errorf("Error making POST request: %v\n", err)
+	
+	for {
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Printf("Error making POST request: %v\n", err)
+		} else {
+			defer resp.Body.Close()
+			return data.Id, resp.StatusCode, nil
+		}
 	}
-
-	return data.Id, resp.StatusCode, nil
 }
