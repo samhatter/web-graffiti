@@ -65,12 +65,14 @@ func startDownloads(result []UserFiles)(error) {
 	for _, userFiles := range result {
 		files := userFiles.Files
 		folderMap := groupPathsByFolder(files)
+		foldersDownloaded := 0
 		for folderName, folder := range folderMap {
 			folderSize := 0
 			for _, file := range folder {
 					folderSize += file.Size
 			}
-			if len(folder) > 5 && int64(folderSize) < (int64(targetSize) - size) {
+			if len(folder) > 5 && (int64(folderSize) < (int64(targetSize) - size) && foldersDownloaded < 5) {
+				foldersDownloaded += 1
 				fmt.Printf("Queueing Folder, User:%s, Folder:%s\n", userFiles.Username, folderName)
 				var requests []DownloadRequest
 				for _, file := range folder {
