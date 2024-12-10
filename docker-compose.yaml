@@ -27,10 +27,10 @@ services:
     restart: always
 
   web-graffiti-slskd:
-    image: slskd/slskd:canary
+    build: ./slskd
     container_name: web-graffiti-slskd
     network_mode: container:web-graffiti-gluetun
-    user: 1000:100
+    user: "1000:100"
     environment:
       - SLSKD_DOWNLOADS_DIR=/media
       - SLSKD_SHARED_DIR=/media
@@ -54,7 +54,7 @@ services:
     networks:
       - web-graffiti-network
     environment:
-      - TARGET_SIZE=1000
+      - TARGET_SIZE=100
     env_file:
       - ./secrets/web-graffiti.env
     volumes:

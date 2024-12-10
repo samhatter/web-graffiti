@@ -1,0 +1,6 @@
+integration:
+  scripts:
+    post_download_script:
+      on:
+        - DownloadFileComplete
+      run: /bin/bash /app/metadataScript.sh --event "$DATA"

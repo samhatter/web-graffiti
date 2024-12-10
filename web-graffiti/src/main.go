@@ -6,7 +6,7 @@ import (
 
 func main() {
 	fmt.Println("Web-Graffiti Initializing...")
-	go catchAndRelease()
+	go queueDownloads()
 	go updatePort()
 
 	select {}
