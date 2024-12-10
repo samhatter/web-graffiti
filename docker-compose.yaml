@@ -46,7 +46,7 @@ services:
     env_file:
       - ./secrets/slskd.env
     volumes:
-      - ./media:/media
+      - /storage/web-graffiti:/media
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
@@ -58,12 +58,12 @@ services:
     networks:
       - web-graffiti-network
     environment:
-      - TARGET_SIZE=2
+      - TARGET_SIZE=10000
     env_file:
       - ./secrets/web-graffiti.env
     volumes:
       - ./slskd:/slskd
-      - ./media:/storage
+      - /storage/web-graffiti:/storage
     depends_on:
       - web-graffiti-slskd
     restart: 
