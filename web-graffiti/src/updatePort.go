@@ -40,8 +40,8 @@ func setPort(port string) (error){
 	changed := false
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.Contains(line, "listenPort") {
-			newLine := fmt.Sprintf("  listenPort: %s", port)
+		if strings.Contains(line, "listen_port") {
+			newLine := fmt.Sprintf("  listen_port: %s", port)
 			if line != newLine {
 				line = newLine
 				changed = true
