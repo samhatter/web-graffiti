@@ -20,7 +20,7 @@ services:
     environment:
       - VPN_PORT_FORWARDING=on
       - PORT_FORWARD_ONLY=true
-      - SERVER_REGIONS="USWEST"
+      - SERVER_REGIONS="US Silicon Valley"
       - HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=/gluetun-auth.toml
     ports: 
       - 5554:5554
