@@ -59,6 +59,7 @@ services:
       - web-graffiti-network
     environment:
       - TARGET_SIZE=10000
+      - CHUNK_SIZE=5
     env_file:
       - ./secrets/web-graffiti.env
     volumes:
