@@ -59,13 +59,16 @@ func queueDownloads() {
 }
 
 func startDownloads(result []UserFiles)(error) {
-	size := getStorageSize()
-	fmt.Printf("Current Storage Size: %d\n", size)
+	storageSize := getStorageSize()
+	downloadedSize := int64(0)
+	fmt.Printf("Current Storage Size: %d\n", storageSize)
 	targetSize, err := strconv.Atoi(os.Getenv("TARGET_SIZE"))
 	if err != nil {
 		return fmt.Errorf("Error Reading TARGET_SIZE%v\n", err)
 	}
 	targetSize = targetSize*1024*1024*1024
+	chunkSize := int64(5*1024*1024*1024)
+	maxFoldersPerUser := 2
 	fmt.Printf("Target Storage Size: %d\n", targetSize)
 	for _, userFiles := range result {
 		files := userFiles.Files
@@ -76,7 +79,7 @@ func startDownloads(result []UserFiles)(error) {
 			for _, file := range folder {
 					folderSize += file.Size
 			}
-			if len(folder) > 5 && (int64(folderSize) < (int64(targetSize) - size) && foldersDownloaded < 5) {
+			if len(folder) > 5 && (int64(folderSize) < (chunkSize - downloadedSize) && int64(folderSize) < (int64(targetSize) - storageSize - downloadedSize) && foldersDownloaded < maxFoldersPerUser) {
 				foldersDownloaded += 1
 				fmt.Printf("Queueing Folder, User:%s, Folder:%s\n", userFiles.Username, folderName)
 				var requests []DownloadRequest
@@ -104,7 +107,7 @@ func startDownloads(result []UserFiles)(error) {
 				} else if resp.StatusCode != 201{
 					fmt.Printf("Could not queue download status code: %d\n", resp.StatusCode)
 				} else {
-					size += int64(folderSize)
+					downloadedSize += int64(folderSize)
 				}
 			} 
 		}
