@@ -126,7 +126,7 @@ func startDownloads(result []SearchUserFiles)(error) {
 				client := &http.Client{}
 				resp, err := client.Do(req)
 				if err != nil {
-					return fmt.Errorf("Error making POST request: %v\n", err)
+					fmt.Printf("Error making POST request: %v\n", err)
 				} else if resp.StatusCode != 201{
 					fmt.Printf("Could not queue download status code: %d\n", resp.StatusCode)
 				} else {
