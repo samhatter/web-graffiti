@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/exp/rand"
 )
 
 type SearchRequest struct {
@@ -97,7 +98,9 @@ func startDownloads(result []SearchUserFiles)(error) {
 		files := userFiles.Files
 		folderMap := groupSearchesByFolder(files)
 		foldersDownloaded := 0
-		for folderName, folder := range folderMap {
+		keys := randomizeKeys(folderMap)
+		for _, folderName := range keys {
+			folder := folderMap[folderName]
 			folderSize := 0
 			for _, file := range folder {
 					folderSize += file.Size
@@ -280,4 +283,18 @@ func sendSearch(search string)(string, int, error) {
 			return data.Id, resp.StatusCode, nil
 		}
 	}
+}
+
+func randomizeKeys(inputMap map[string][]SearchFile) []string {
+	keys := make([]string, 0, len(inputMap))
+	for key := range inputMap {
+		keys = append(keys, key)
+	}
+
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(keys), func(i, j int) {
+		keys[i], keys[j] = keys[j], keys[i]
+	})
+
+	return keys
 }

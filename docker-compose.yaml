@@ -22,7 +22,7 @@ services:
       - PORT_FORWARD_ONLY=true
       - SERVER_REGIONS="CA Vancouver"
       - HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=/gluetun-auth.toml
-    ports: 
+    ports:
       - 5554:5554
     restart: always
 
