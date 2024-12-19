@@ -47,6 +47,7 @@ services:
       - ./secrets/slskd.env
     volumes:
       - /storage/web-graffiti:/storage
+      - /storage/media/tv:/storage/tv
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
