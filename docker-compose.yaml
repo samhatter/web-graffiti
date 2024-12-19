@@ -65,7 +65,7 @@ services:
       - UPDATE_PORT_TIMER=30
       - PROCESS_DOWNLOADS_TIMER=5
       - SLSKD_DOWNLOADS_DIR=/storage/downloads
-      - MAX_DOWNLOAD_TIME=1
+      - MAX_DOWNLOAD_TIME=4
     env_file:
       - ./secrets/web-graffiti.env
     volumes:
