@@ -62,11 +62,11 @@ services:
       - TARGET_SIZE=10
       - CHUNK_SIZE=1
       - MAX_FOLDERS_PER_USER=1
-      - QUEUE_DOWNLOADS_TIMER=12
+      - QUEUE_DOWNLOADS_TIMER=1
       - UPDATE_PORT_TIMER=30
       - PROCESS_DOWNLOADS_TIMER=5
       - SLSKD_DOWNLOADS_DIR=/storage/downloads
-      - MAX_DOWNLOAD_TIME = 24
+      - MAX_DOWNLOAD_TIME = 1
     env_file:
       - ./secrets/web-graffiti.env
     volumes:
