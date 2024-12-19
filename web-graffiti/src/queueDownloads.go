@@ -11,9 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/google/uuid"
-	"golang.org/x/exp/rand"
+	"math/rand"
 )
 
 type SearchRequest struct {
@@ -290,8 +289,7 @@ func randomizeKeys(inputMap map[string][]SearchFile) []string {
 	for key := range inputMap {
 		keys = append(keys, key)
 	}
-
-	rand.Seed(time.Now().UnixNano())
+	
 	rand.Shuffle(len(keys), func(i, j int) {
 		keys[i], keys[j] = keys[j], keys[i]
 	})
