@@ -47,7 +47,7 @@ services:
       - ./secrets/slskd.env
       - ./secrets/mongo.env
     volumes:
-      - /storage/web-graffiti:./slsk/media
+      - ./media:/media
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
@@ -69,7 +69,7 @@ services:
       - ./secrets/mongo.env
     volumes:
       - ./slskd:/slskd
-      - /storage/web-graffiti:/storage
+      - ./storage:/storage
     depends_on:
       - web-graffiti-slskd
     restart: 
@@ -83,7 +83,7 @@ services:
       - "27017:27017"
     networks:
       - web-graffiti-network
-    env-file:
+    env_file:
       - ./secrets/mongo.env
     volumes:
       - mongodb_data:/data/db

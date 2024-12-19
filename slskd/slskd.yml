@@ -1,3 +1,6 @@
+soulseek:
+  listen_port: 56541
+
 integration:
   scripts:
     post_download_script:
@@ -8,4 +11,5 @@ integration:
       on:
         - UploadFileComplete
       run: /bin/bash /app/uploadScript.sh --event '$DATA'
+
       
