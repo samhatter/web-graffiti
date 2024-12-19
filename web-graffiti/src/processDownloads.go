@@ -109,7 +109,7 @@ func processUserDownloads(userDownloads []UserDownload, downloadTracker map[stri
 						fmt.Printf("Error retrying download: %v\n", err)
 					}
 					allFilesDownloaded = false
-					
+
 					if !newDownloads {
 						break
 					}
@@ -141,9 +141,11 @@ func retryDownload(fileDownload FileDownload, directoryDownload DirectoryDownloa
 	layout := "2006-01-02T15:04:05.9999999"
 	parsedTime, err := time.Parse(layout, fileDownload.RequestedAt)
 
-	if value, exists := downloadTracker[fileDownload.FileName]; exists && time.Duration(maxDownloadTime)*time.Hour < time.Now().Sub(value) {
-		clearDownload(directoryDownload, downloadTracker)
-		return false, nil
+	if value, exists := downloadTracker[fileDownload.FileName]; exists {
+		if time.Duration(maxDownloadTime)*time.Hour < time.Now().Sub(value) {
+			clearDownload(directoryDownload, downloadTracker)
+			return false, nil
+		}
 	} else {
 		downloadTracker[fileDownload.FileName] = parsedTime
 	}
