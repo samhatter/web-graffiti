@@ -42,6 +42,13 @@ type DownloadRequest struct {
 }
 
 func queueDownloads() {
+	waitTime, err := strconv.Atoi(os.Getenv("QUEUE_DOWNLOADS_TIMER"))
+	if err != nil {
+		fmt.Printf("Error Reading QUEUE_DOWNLOADS_TIMER%v\n", err)
+		waitTime = 24
+	}
+	fmt.Printf("Wait Time: %d\n", waitTime)
+
 	for {
 		result, err := getSearch()
 		if err != nil {
@@ -54,7 +61,7 @@ func queueDownloads() {
 			fmt.Println("Done Queueing Downloads")
 		}
 
-		time.Sleep(24*time.Hour)
+		time.Sleep(time.Duration(waitTime) * time.Hour)
 	}
 }
 
@@ -71,14 +78,16 @@ func startDownloads(result []UserFiles)(error) {
 
 	chunkSize, err := strconv.Atoi(os.Getenv("CHUNK_SIZE"))
 	if err != nil {
-		return fmt.Errorf("Error Reading CHUNK_SIZE%v\n", err)
+		fmt.Printf("Error Reading CHUNK_SIZE%v\n", err)
+		chunkSize = 1
 	}
 	chunkSize = chunkSize*1024*1024*1024
 	fmt.Printf("Chunk Size: %d\n", chunkSize)
 
 	maxFoldersPerUser, err := strconv.Atoi(os.Getenv("MAX_FOLDERS_PER_USER"))
 	if err != nil {
-		return fmt.Errorf("Error Reading MAX_FOLDERS_PER_USER%v\n", err)
+		fmt.Printf("Error Reading MAX_FOLDERS_PER_USER%v\n", err)
+		maxFoldersPerUser = 1
 	}
 	fmt.Printf("Max Folders Per User: %d\n", maxFoldersPerUser)
 

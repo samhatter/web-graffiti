@@ -60,6 +60,9 @@ services:
     environment:
       - TARGET_SIZE=10000
       - CHUNK_SIZE=5
+      - MAX_FOLDERS_PER_USER=2
+      - QUEUE_DOWNLOADS_TIMER=12
+      - UPDATE_PORT_TIMER=30
     env_file:
       - ./secrets/web-graffiti.env
     volumes:
