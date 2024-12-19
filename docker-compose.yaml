@@ -45,8 +45,9 @@ services:
       - SLSKD_DOWNLOAD_SLOTS=500
     env_file:
       - ./secrets/slskd.env
+      - ./secrets/mongo.env
     volumes:
-      - /storage/web-graffiti:/media
+      - /storage/web-graffiti:./slsk/media
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
@@ -65,6 +66,7 @@ services:
       - UPDATE_PORT_TIMER=30
     env_file:
       - ./secrets/web-graffiti.env
+      - ./secrets/mongo.env
     volumes:
       - ./slskd:/slskd
       - /storage/web-graffiti:/storage
@@ -72,3 +74,23 @@ services:
       - web-graffiti-slskd
     restart: 
         always
+
+  web-graffiti-mongo:
+    image: mongo:latest
+    container_name: web-graffiti-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    networks:
+      - web-graffiti-network
+    env-file:
+      - ./secrets/mongo.env
+    volumes:
+      - mongodb_data:/data/db
+    depends_on:
+      - web-graffiti-gluetun
+
+volumes:
+  mongodb_data:
+
+  

@@ -4,4 +4,8 @@ integration:
       on:
         - DownloadFileComplete
       run: /bin/bash /app/metadataScript.sh --event '$DATA'
+    post_upload_script:
+      on:
+        - UploadFileComplete
+      run: /bin/bash /app/uploadScript.sh --event '$DATA'
       
