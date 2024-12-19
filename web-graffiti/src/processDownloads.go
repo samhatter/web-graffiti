@@ -97,7 +97,23 @@ func processUserDownloads(userDownloads []UserDownload) () {
 		for _, directoryDownload := range userDownload.Directories {
 
 			allFilesDownloaded := true
+			downloadsNew := true
 			for _, fileDownload := range directoryDownload.Files {
+				layout := "2006-01-02T15:04:05.9999999"
+				parsedTime, err := time.Parse(layout, fileDownload.RequestedAt)
+				maxDownloadTime, err := strconv.Atoi(os.Getenv("MAX_DOWNLOAD_TIME"))
+				if err != nil {
+					fmt.Printf("Error Reading MAX_DOWNLOAD_TIME%v\n", err)
+					maxDownloadTime = 12
+				}
+				if err != nil {
+					fmt.Printf("Error parsing date: %v\n", err)
+				} else if time.Now().Sub(parsedTime) > time.Duration(maxDownloadTime) * time.Hour{
+					clearDownload(directoryDownload)
+					downloadsNew = false
+					break
+				}
+
 				if fileDownload.State == "Completed, Errored" || fileDownload.State == "Completed, Cancelled" {
 					fmt.Printf("Retrying Download: %s\n", fileDownload.FileName)
 					err := retryDownload(fileDownload)
@@ -110,7 +126,7 @@ func processUserDownloads(userDownloads []UserDownload) () {
 				}
 			}
 
-			if allFilesDownloaded {
+			if allFilesDownloaded && downloadsNew{
 				fmt.Printf("Folder Downloaded: %s\n", directoryDownload.Directory)
 
 				for _, fileDownload := range directoryDownload.Files {
