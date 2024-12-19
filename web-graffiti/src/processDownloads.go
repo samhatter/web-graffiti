@@ -109,6 +109,10 @@ func processUserDownloads(userDownloads []UserDownload, downloadTracker map[stri
 						fmt.Printf("Error retrying download: %v\n", err)
 					}
 					allFilesDownloaded = false
+					
+					if !newDownloads {
+						break
+					}
 				} else if fileDownload.State != "Completed, Succeeded" {
 					allFilesDownloaded = false
 				}
