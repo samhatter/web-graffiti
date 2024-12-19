@@ -20,16 +20,16 @@ type SearchRequest struct {
 	SearchText string `json:"searchText"`
 }
 
-type File struct {
-	Filename string `json:"filename"`
+type SearchFile struct {
+	FileName string `json:"filename"`
 	Size int `json:"size"`
 	IsLocked bool `json:"isLocked"`
 }
 
-type UserFiles struct {
+type SearchUserFiles struct {
 	FileCount int `json:"fileCount"`
-	Files []File `json:"files"`
-	Username string `json:"username"`
+	Files []SearchFile `json:"files"`
+	UserName string `json:"username"`
 }
 
 type SearchStatus struct {
@@ -37,7 +37,7 @@ type SearchStatus struct {
 }
 
 type DownloadRequest struct {
-	Filename string `json:"filename"`
+	FileName string `json:"filename"`
 	Size int `json:"size"`
 }
 
@@ -47,9 +47,10 @@ func queueDownloads() {
 		fmt.Printf("Error Reading QUEUE_DOWNLOADS_TIMER%v\n", err)
 		waitTime = 24
 	}
-	fmt.Printf("Wait Time: %d\n", waitTime)
+	fmt.Printf("QUEUE_DOWNLOADS_TIMER: %d\n", waitTime)
 
 	for {
+		fmt.Println("Searching for Downloads")
 		result, err := getSearch()
 		if err != nil {
 			fmt.Printf("Error Searching %v\n", err)
@@ -65,7 +66,7 @@ func queueDownloads() {
 	}
 }
 
-func startDownloads(result []UserFiles)(error) {
+func startDownloads(result []SearchUserFiles)(error) {
 	storageSize := getStorageSize()
 	fmt.Printf("Current Storage Size: %d\n", storageSize)
 
@@ -94,7 +95,7 @@ func startDownloads(result []UserFiles)(error) {
 	downloadedSize := 0
 	for _, userFiles := range result {
 		files := userFiles.Files
-		folderMap := groupPathsByFolder(files)
+		folderMap := groupSearchesByFolder(files)
 		foldersDownloaded := 0
 		for folderName, folder := range folderMap {
 			folderSize := 0
@@ -103,11 +104,11 @@ func startDownloads(result []UserFiles)(error) {
 			}
 			if len(folder) > 5 && (int64(folderSize) < (int64(chunkSize) - int64(downloadedSize)) && int64(folderSize) < (int64(targetSize) - int64(storageSize) - int64(downloadedSize)) && foldersDownloaded < maxFoldersPerUser) {
 				foldersDownloaded += 1
-				fmt.Printf("Queueing Folder, User:%s, Folder:%s\n", userFiles.Username, folderName)
+				fmt.Printf("Queueing Folder, User:%s, Folder:%s\n", userFiles.UserName, folderName)
 				var requests []DownloadRequest
 				for _, file := range folder {
 					requests = append(requests, DownloadRequest{
-						Filename: file.Filename,
+						FileName: file.FileName,
 						Size: file.Size,
 					})
 				}
@@ -115,7 +116,7 @@ func startDownloads(result []UserFiles)(error) {
 				if err != nil {
 					return fmt.Errorf("Error marshalling JSON: %v\n", err)
 				}
-				url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s", userFiles.Username)
+				url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s", userFiles.UserName)
 				req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 				if err != nil {
 					return fmt.Errorf("Error creating request: %v\n", err)
@@ -137,19 +138,17 @@ func startDownloads(result []UserFiles)(error) {
 	return nil
 }
 
-func groupPathsByFolder(files []File)(map[string][]File) {
-	output := make(map[string][]File)
+func groupSearchesByFolder(files []SearchFile)(map[string][]SearchFile) {
+	output := make(map[string][]SearchFile)
 	for _, file := range files {
-		split := strings.Split(file.Filename, "\\")
+		split := strings.Split(file.FileName, "\\")
 		prefix := strings.Join(split[:len(split)-1], "\\")
 		output[prefix] = append(output[prefix], file)
 	}
 	return output
 }
 
-func getSearch()([]UserFiles, error){
-	fmt.Println("Calling Catch and Release")
-	
+func getSearch()([]SearchUserFiles, error){
 	id, status, err := sendSearch("flac")
 	if err != nil {
 		return nil, fmt.Errorf("Error Sending Search %v\n", err)
@@ -165,7 +164,7 @@ func getSearch()([]UserFiles, error){
 	}
 }
 
-func checkSearchResults(id string)([]UserFiles, error){
+func checkSearchResults(id string)([]SearchUserFiles, error){
 	searchComplete := false
 	url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/searches/%s", id)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -197,7 +196,7 @@ func checkSearchResults(id string)([]UserFiles, error){
 		time.Sleep(1*time.Second)
 	}
 
-	var data []UserFiles
+	var data []SearchUserFiles
 	url = fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/searches/%s/responses", id)
 	req, err = http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -221,7 +220,7 @@ func checkSearchResults(id string)([]UserFiles, error){
 			if err != nil {
 				return nil, fmt.Errorf("Error Reading Response Body, %v\n", err)
 			}
-			var newData []UserFiles
+			var newData []SearchUserFiles
 			err = json.Unmarshal(body, &data)
 			if err != nil {
 				return nil, fmt.Errorf("error parsing response body: %v\n", err)

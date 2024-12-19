@@ -16,9 +16,10 @@ import (
 func updatePort() {
 	waitTime, err := strconv.Atoi(os.Getenv("UPDATE_PORT_TIMER"))
 	if err != nil {
-		 fmt.Printf("Error Reading QUEUE_DOWNLOADS_TIMER%v\n", err)
+		 fmt.Printf("Error Reading UPDATE_PORT_TIMER%v\n", err)
 		 return
 	}
+	fmt.Printf("UPDATE_PORT_TIMER: %d\n", waitTime)
 
 	for {
 		port, err := fetchPort()

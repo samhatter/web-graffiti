@@ -22,18 +22,19 @@ services:
       - PORT_FORWARD_ONLY=true
       - SERVER_REGIONS="CA Vancouver"
       - HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=/gluetun-auth.toml
+      - VPN_BYPASS_CIDRS=127.0.0.1
     ports: 
       - 5554:5554
     restart: always
 
   web-graffiti-slskd:
-    build: ./slskd
+    image: slskd/slskd:latest
     container_name: web-graffiti-slskd
     network_mode: container:web-graffiti-gluetun
     user: "1000:100"
     environment:
-      - SLSKD_DOWNLOADS_DIR=/media
-      - SLSKD_SHARED_DIR=/media
+      - SLSKD_DOWNLOADS_DIR=/storage/downloads
+      - SLSKD_SHARED_DIR=/storage
       - SLSKD_REMOTE_CONFIGURATION=true
       - SLSKD_HTTP_PORT=5554
       - SLSKD_DISK_LOGGER=true
@@ -45,9 +46,8 @@ services:
       - SLSKD_DOWNLOAD_SLOTS=500
     env_file:
       - ./secrets/slskd.env
-      - ./secrets/mongo.env
     volumes:
-      - ./media:/media
+      - ./storage:/storage
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
@@ -59,14 +59,15 @@ services:
     networks:
       - web-graffiti-network
     environment:
-      - TARGET_SIZE=10000
-      - CHUNK_SIZE=5
-      - MAX_FOLDERS_PER_USER=2
+      - TARGET_SIZE=10
+      - CHUNK_SIZE=1
+      - MAX_FOLDERS_PER_USER=1
       - QUEUE_DOWNLOADS_TIMER=12
       - UPDATE_PORT_TIMER=30
+      - PROCESS_DOWNLOADS_TIMER=5
+      - SLSKD_DOWNLOADS_DIR=/storage/downloads
     env_file:
       - ./secrets/web-graffiti.env
-      - ./secrets/mongo.env
     volumes:
       - ./slskd:/slskd
       - ./storage:/storage
@@ -75,22 +76,5 @@ services:
     restart: 
         always
 
-  web-graffiti-mongo:
-    image: mongo:latest
-    container_name: web-graffiti-mongo
-    restart: always
-    ports:
-      - "27017:27017"
-    networks:
-      - web-graffiti-network
-    env_file:
-      - ./secrets/mongo.env
-    volumes:
-      - mongodb_data:/data/db
-    depends_on:
-      - web-graffiti-gluetun
-
-volumes:
-  mongodb_data:
 
   
