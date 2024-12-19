@@ -104,13 +104,14 @@ func processUserDownloads(userDownloads []UserDownload, downloadTracker map[stri
 				if fileDownload.State == "Completed, Errored" || fileDownload.State == "Completed, Cancelled" {
 					fmt.Printf("Retrying Download: %s\n", fileDownload.FileName)
 					var err error
-					newDownloads, err = retryDownload(fileDownload, directoryDownload, downloadTracker)
+					newDownloads, err = retryDownload(fileDownload, downloadTracker)
 					if err != nil {
 						fmt.Printf("Error retrying download: %v\n", err)
 					}
 					allFilesDownloaded = false
 
 					if !newDownloads {
+						clearDownload(directoryDownload, downloadTracker)
 						break
 					}
 				} else if fileDownload.State != "Completed, Succeeded" {
@@ -131,7 +132,7 @@ func processUserDownloads(userDownloads []UserDownload, downloadTracker map[stri
 	}
 }
 
-func retryDownload(fileDownload FileDownload, directoryDownload DirectoryDownload, downloadTracker map[string]time.Time) (bool, error) {
+func retryDownload(fileDownload FileDownload, downloadTracker map[string]time.Time) (bool, error) {
 	maxDownloadTime, err := strconv.Atoi(os.Getenv("MAX_DOWNLOAD_TIME"))
 	if err != nil {
 		fmt.Printf("Error Reading MAX_DOWNLOAD_TIME%v\n", err)
@@ -143,7 +144,6 @@ func retryDownload(fileDownload FileDownload, directoryDownload DirectoryDownloa
 
 	if value, exists := downloadTracker[fileDownload.FileName]; exists {
 		if time.Duration(maxDownloadTime)*time.Hour < time.Now().Sub(value) {
-			clearDownload(directoryDownload, downloadTracker)
 			return false, nil
 		}
 	} else {
