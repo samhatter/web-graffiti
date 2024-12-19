@@ -22,7 +22,6 @@ services:
       - PORT_FORWARD_ONLY=true
       - SERVER_REGIONS="CA Vancouver"
       - HTTP_CONTROL_SERVER_AUTH_CONFIG_FILEPATH=/gluetun-auth.toml
-      - VPN_BYPASS_CIDRS=127.0.0.1
     ports: 
       - 5554:5554
     restart: always
@@ -47,7 +46,7 @@ services:
     env_file:
       - ./secrets/slskd.env
     volumes:
-      - ./storage:/storage
+      - /storage/web-graffiti:/storage
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
@@ -59,10 +58,10 @@ services:
     networks:
       - web-graffiti-network
     environment:
-      - TARGET_SIZE=10
-      - CHUNK_SIZE=1
+      - TARGET_SIZE=10000
+      - CHUNK_SIZE=1000
       - MAX_FOLDERS_PER_USER=1
-      - QUEUE_DOWNLOADS_TIMER=1
+      - QUEUE_DOWNLOADS_TIMER=12
       - UPDATE_PORT_TIMER=30
       - PROCESS_DOWNLOADS_TIMER=5
       - SLSKD_DOWNLOADS_DIR=/storage/downloads
@@ -71,10 +70,10 @@ services:
       - ./secrets/web-graffiti.env
     volumes:
       - ./slskd:/slskd
-      - ./storage:/storage
+      - /storage/web-graffiti:/storage
     depends_on:
       - web-graffiti-slskd
-    restart: 
+    restart:
         always
 
 
