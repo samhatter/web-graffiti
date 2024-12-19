@@ -42,17 +42,20 @@ func processDownloads() {
 	}
 	fmt.Printf("PROCESS_DOWNLOADS_TIMER: %d\n", waitTime)
 
+	downloadTracker := make(map[string]time.Time)
+
 	for {
 		fmt.Println("Processing Downloads...")
 		userDownloads, err := fetchActiveDownloads()
 		if err != nil {
 			fmt.Printf("Error fetching active downloads: %v\n", err)
 		} else {
-			processUserDownloads(userDownloads)
+			processUserDownloads(userDownloads, downloadTracker)
 		}
 
 		scanShares()
 		fmt.Println("Done Processing Downloads")
+		fmt.Printf("Waiting on %d files\n", len(downloadTracker))
 		time.Sleep(time.Duration(waitTime) * time.Minute)
 	}
 }
@@ -92,31 +95,16 @@ func fetchActiveDownloads() ([]UserDownload, error) {
 
 }
 
-func processUserDownloads(userDownloads []UserDownload) () {
+func processUserDownloads(userDownloads []UserDownload, downloadTracker map[string]time.Time) () {
 	for _, userDownload := range userDownloads {
 		for _, directoryDownload := range userDownload.Directories {
-
 			allFilesDownloaded := true
-			downloadsNew := true
+			newDownloads := true
 			for _, fileDownload := range directoryDownload.Files {
-				layout := "2006-01-02T15:04:05.9999999"
-				parsedTime, err := time.Parse(layout, fileDownload.RequestedAt)
-				maxDownloadTime, err := strconv.Atoi(os.Getenv("MAX_DOWNLOAD_TIME"))
-				if err != nil {
-					fmt.Printf("Error Reading MAX_DOWNLOAD_TIME%v\n", err)
-					maxDownloadTime = 12
-				}
-				if err != nil {
-					fmt.Printf("Error parsing date: %v\n", err)
-				} else if time.Now().Sub(parsedTime) > time.Duration(maxDownloadTime) * time.Hour{
-					clearDownload(directoryDownload)
-					downloadsNew = false
-					break
-				}
-
 				if fileDownload.State == "Completed, Errored" || fileDownload.State == "Completed, Cancelled" {
 					fmt.Printf("Retrying Download: %s\n", fileDownload.FileName)
-					err := retryDownload(fileDownload)
+					var err error
+					newDownloads, err = retryDownload(fileDownload, directoryDownload, downloadTracker)
 					if err != nil {
 						fmt.Printf("Error retrying download: %v\n", err)
 					}
@@ -126,47 +114,63 @@ func processUserDownloads(userDownloads []UserDownload) () {
 				}
 			}
 
-			if allFilesDownloaded && downloadsNew{
+			if allFilesDownloaded && newDownloads {
 				fmt.Printf("Folder Downloaded: %s\n", directoryDownload.Directory)
 
 				for _, fileDownload := range directoryDownload.Files {
 					addMetaData(fileDownload)
 				}
 
-				clearDownload(directoryDownload)
+				clearDownload(directoryDownload, downloadTracker)
 			}
 		}
 	}
 }
 
-func retryDownload(file FileDownload) error {
+func retryDownload(fileDownload FileDownload, directoryDownload DirectoryDownload, downloadTracker map[string]time.Time) (bool, error) {
+	maxDownloadTime, err := strconv.Atoi(os.Getenv("MAX_DOWNLOAD_TIME"))
+	if err != nil {
+		fmt.Printf("Error Reading MAX_DOWNLOAD_TIME%v\n", err)
+		maxDownloadTime = 12
+	}
+
+	layout := "2006-01-02T15:04:05.9999999"
+	parsedTime, err := time.Parse(layout, fileDownload.RequestedAt)
+
+	if value, exists := downloadTracker[fileDownload.FileName]; exists && time.Duration(maxDownloadTime)*time.Hour < time.Now().Sub(value) {
+		clearDownload(directoryDownload, downloadTracker)
+		return false, nil
+	} else {
+		downloadTracker[fileDownload.FileName] = parsedTime
+	}
+
 	var requests []DownloadRequest
 	requests = append(requests, DownloadRequest{
-		FileName: file.FileName,
-		Size: file.Size,
+		FileName: fileDownload.FileName,
+		Size: fileDownload.Size,
 	})
 
 	jsonData, err := json.Marshal(requests)
 	if err != nil {
-		return fmt.Errorf("Error marshalling JSON: %v\n", err)
+		return false, fmt.Errorf("Error marshalling JSON: %v\n", err)
 	}
 
-	url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s", file.UserName)
+	url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s", fileDownload.UserName)
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
 	if err != nil {
-		return fmt.Errorf("Error creating request: %v\n", err)
+		return false, fmt.Errorf("Error creating request: %v\n", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return fmt.Errorf("Error making POST request: %v\n", err)
+		return false, fmt.Errorf("Error making POST request: %v\n", err)
 	} else if resp.StatusCode != 201{
-		return fmt.Errorf("Could not queue download status code: %d\n", resp.StatusCode)
+		return false, fmt.Errorf("Could not queue download status code: %d\n", resp.StatusCode)
 	}
 
-	return nil
+	return true, nil
 }
 
 func addMetaData(file FileDownload) {
@@ -193,7 +197,7 @@ func addMetaData(file FileDownload) {
 	}
 }
 
-func clearDownload(directoryDownload DirectoryDownload)  {
+func clearDownload(directoryDownload DirectoryDownload, downloadTracker map[string]time.Time)  {
 	for _, fileDownload := range directoryDownload.Files {
 		for {
 			url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s/%s?remove=true", fileDownload.UserName, fileDownload.Id)
@@ -226,7 +230,10 @@ func clearDownload(directoryDownload DirectoryDownload)  {
 	if err != nil {
 		fmt.Printf("Failed to move dir: %v\n", err)
 	}
-
+	
+	for _, fileDownload := range directoryDownload.Files {
+		delete(downloadTracker, fileDownload.FileName)
+	}
 }
 
 func scanShares() {
