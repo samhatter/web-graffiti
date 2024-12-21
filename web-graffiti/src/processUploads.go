@@ -150,11 +150,13 @@ func removeDirectories(directoryFrequency map[string]int, directorySize map[stri
 
 	removedSize := 0
 	for _, directory := range directories {
-		os.Remove(directory)
-		removedSize += directorySize[directory]
-		fmt.Printf("Removing %s with %d uploads", directory, directoryFrequency[directory])
-		if removedSize > removeChunkSize {
-			return
+		if directory[:12] != "/storage/tv/"{
+			os.Remove(directory)
+			removedSize += directorySize[directory]
+			fmt.Printf("Removing %s with %d uploads", directory, directoryFrequency[directory])
+			if removedSize > removeChunkSize {
+				return
+			}
 		}
 	}
 }
