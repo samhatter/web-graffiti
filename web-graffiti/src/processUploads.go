@@ -83,7 +83,7 @@ func fetchUploads() (map[string]int, error) {
 				fmt.Printf("Found %d Uploads\n", len(userUploads))
 				for _, userUpload := range userUploads {
 					for _, directoryUpload := range userUpload.Directories {
-						directoryFrequency[directoryUpload.Directory] += directoryUpload.FileCount
+						directoryFrequency[directoryUpload.Directory] ++
 					}
 				}
 				return directoryFrequency, nil
