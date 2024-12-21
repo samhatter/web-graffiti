@@ -49,7 +49,7 @@ type DownloadRequest struct {
 
 type DirectoryShare struct {
 	Name string `json:"name"`
-	FileCount string `json:"filecount"`
+	FileCount int `json:"filecount"`
 	Files []FileShare `json:"files"`
 }
 
