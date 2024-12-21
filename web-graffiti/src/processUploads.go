@@ -145,7 +145,7 @@ func removeDirectories(directoryFrequency map[string]int, directorySize map[stri
 	fmt.Println("Most Popular Uploads:")
 	for i := 1; i < 6 && i <= numDirs; i++ {
 		currentDir := directories[numDirs - i]
-		fmt.Printf("- %s: %d uploads", currentDir, directoryFrequency[currentDir])
+		fmt.Printf("- %s: %d uploads\n", currentDir, directoryFrequency[currentDir])
 	}
 
 	removedSize := 0
@@ -153,7 +153,7 @@ func removeDirectories(directoryFrequency map[string]int, directorySize map[stri
 		if directory[:12] != "/storage/tv/"{
 			os.Remove(directory)
 			removedSize += directorySize[directory]
-			fmt.Printf("Removing %s with %d uploads", directory, directoryFrequency[directory])
+			fmt.Printf("Removing %s with %d uploads\n", directory, directoryFrequency[directory])
 			if removedSize > removeChunkSize {
 				return
 			}
