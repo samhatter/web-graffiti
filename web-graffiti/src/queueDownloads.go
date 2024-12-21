@@ -12,34 +12,7 @@ import (
 	"strings"
 	"time"
 	"github.com/google/uuid"
-	"math/rand"
 )
-
-type SearchRequest struct {
-	Id string `json:"id"`
-	SearchText string `json:"searchText"`
-}
-
-type SearchFile struct {
-	FileName string `json:"filename"`
-	Size int `json:"size"`
-	IsLocked bool `json:"isLocked"`
-}
-
-type SearchUserFiles struct {
-	FileCount int `json:"fileCount"`
-	Files []SearchFile `json:"files"`
-	UserName string `json:"username"`
-}
-
-type SearchStatus struct {
-	IsComplete bool `json:"isComplete"`
-}
-
-type DownloadRequest struct {
-	FileName string `json:"filename"`
-	Size int `json:"size"`
-}
 
 func queueDownloads() {
 	waitTime, err := strconv.Atoi(os.Getenv("QUEUE_DOWNLOADS_TIMER"))
@@ -69,12 +42,13 @@ func queueDownloads() {
 func startDownloads(result []SearchUserFiles)(error) {
 	storageSize := getStorageSize()
 	fmt.Printf("Current Storage Size: %d\n", storageSize)
-
+	
+	GiB := 1024*1024*1024
 	targetSize, err := strconv.Atoi(os.Getenv("TARGET_SIZE"))
 	if err != nil {
 		return fmt.Errorf("Error Reading TARGET_SIZE%v\n", err)
 	}
-	targetSize = targetSize*1024*1024*1024
+	targetSize = targetSize*GiB
 	fmt.Printf("Target Storage Size: %d\n", targetSize)
 
 	chunkSize, err := strconv.Atoi(os.Getenv("CHUNK_SIZE"))
@@ -82,7 +56,7 @@ func startDownloads(result []SearchUserFiles)(error) {
 		fmt.Printf("Error Reading CHUNK_SIZE%v\n", err)
 		chunkSize = 1
 	}
-	chunkSize = chunkSize*1024*1024*1024
+	chunkSize = chunkSize*GiB
 	fmt.Printf("Chunk Size: %d\n", chunkSize)
 
 	maxFoldersPerUser, err := strconv.Atoi(os.Getenv("MAX_FOLDERS_PER_USER"))
@@ -284,15 +258,3 @@ func sendSearch(search string)(string, int, error) {
 	}
 }
 
-func randomizeKeys(inputMap map[string][]SearchFile) []string {
-	keys := make([]string, 0, len(inputMap))
-	for key := range inputMap {
-		keys = append(keys, key)
-	}
-	
-	rand.Shuffle(len(keys), func(i, j int) {
-		keys[i], keys[j] = keys[j], keys[i]
-	})
-
-	return keys
-}

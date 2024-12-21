@@ -9,5 +9,6 @@ func main() {
 	go queueDownloads()
 	go updatePort()
 	go processDownloads()
+	go processUploads()
 	select {}
 }

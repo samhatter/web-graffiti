@@ -14,26 +14,6 @@ import (
 	"time"
 )
 
-type UserDownload struct {
-	Username string `json:"username"`
-	Directories []DirectoryDownload `json:"directories"`
-}
-
-type DirectoryDownload struct {
-	Directory string `json:"directory"`
-	FileCount int `json:"fileCount"`
-	Files []FileDownload `json:"files"`
-}
-
-type FileDownload struct {
-	Id string `json:"id"`
-	FileName string `json:"filename"`
-	State string `json:"state"`
-	Size int `json:"size"`
-	RequestedAt string `json:"requestedAt"`
-	UserName string `json:"username"`
-}
-
 func processDownloads() {
 	waitTime, err := strconv.Atoi(os.Getenv("PROCESS_DOWNLOADS_TIMER"))
 	if err != nil {
@@ -60,7 +40,7 @@ func processDownloads() {
 	}
 }
 
-func fetchActiveDownloads() ([]UserDownload, error) {
+func fetchActiveDownloads() ([]UserTransfer, error) {
 	url := "http://web-graffiti-gluetun:5554/api/v0/transfers/downloads"
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -82,7 +62,7 @@ func fetchActiveDownloads() ([]UserDownload, error) {
 				return nil, fmt.Errorf("Error reading response body: %v\n", err)
 			}
 
-			var data []UserDownload
+			var data []UserTransfer
 			err = json.Unmarshal(body, &data)
 			if err != nil {
 				return nil, fmt.Errorf("Error parsing response body: %v\n", err)
@@ -95,7 +75,7 @@ func fetchActiveDownloads() ([]UserDownload, error) {
 
 }
 
-func processUserDownloads(userDownloads []UserDownload, downloadTracker map[string]time.Time) () {
+func processUserDownloads (userDownloads []UserTransfer, downloadTracker map[string]time.Time) () {
 	for _, userDownload := range userDownloads {
 		for _, directoryDownload := range userDownload.Directories {
 			allFilesDownloaded := true
@@ -132,7 +112,7 @@ func processUserDownloads(userDownloads []UserDownload, downloadTracker map[stri
 	}
 }
 
-func retryDownload(fileDownload FileDownload, downloadTracker map[string]time.Time) (bool, error) {
+func retryDownload(fileDownload FileTransfer, downloadTracker map[string]time.Time) (bool, error) {
 	maxDownloadTime, err := strconv.Atoi(os.Getenv("MAX_DOWNLOAD_TIME"))
 	if err != nil {
 		fmt.Printf("Error Reading MAX_DOWNLOAD_TIME%v\n", err)
@@ -179,7 +159,7 @@ func retryDownload(fileDownload FileDownload, downloadTracker map[string]time.Ti
 	return true, nil
 }
 
-func addMetaData(file FileDownload) {
+func addMetaData(file FileTransfer) {
 	secretMessage := os.Getenv("SECRET_MESSAGE")
 	downloadDir := os.Getenv("SLSKD_DOWNLOADS_DIR")
 
@@ -203,7 +183,7 @@ func addMetaData(file FileDownload) {
 	}
 }
 
-func clearDownload(directoryDownload DirectoryDownload, downloadTracker map[string]time.Time)  {
+func clearDownload(directoryDownload DirectoryTransfer, downloadTracker map[string]time.Time)  {
 	for _, fileDownload := range directoryDownload.Files {
 		for {
 			url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s/%s?remove=true", fileDownload.UserName, fileDownload.Id)
