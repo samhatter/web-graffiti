@@ -71,16 +71,9 @@ func setPort(port string) (error){
 		return fmt.Errorf("Error writing to file: %v\n", err)
 	}
 
-	url := "http://web-graffiti-gluetun:5554/api/v0/application"
-	req, err := http.NewRequest(http.MethodPut, url, nil)
+	resp, err := send(http.MethodPut, "http://web-graffiti-gluetun:5554", "api/v0/application", nil)
 	if err != nil {
-		return fmt.Errorf("Error creating request: %v\n", err)
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("Error making PUT request: %v\n", err)
+		return fmt.Errorf("Error restarting application: %v\n", err)
 	}
 	defer resp.Body.Close()
 

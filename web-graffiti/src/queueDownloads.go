@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -88,21 +87,10 @@ func startDownloads(result []SearchUserFiles)(error) {
 						Size: file.Size,
 					})
 				}
-				jsonData, err := json.Marshal(requests)
+				resp, err := send(http.MethodPost, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/transfers/downloads/%s", userFiles.UserName), requests)
+				defer resp.Body.Close()
 				if err != nil {
-					return fmt.Errorf("Error marshalling JSON: %v\n", err)
-				}
-				url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s", userFiles.UserName)
-				req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
-				if err != nil {
-					return fmt.Errorf("Error creating request: %v\n", err)
-				}
-				req.Header.Set("Content-Type", "application/json")
-			
-				client := &http.Client{}
-				resp, err := client.Do(req)
-				if err != nil {
-					fmt.Printf("Error making POST request: %v\n", err)
+					fmt.Printf("Error Queueing Download: %v\n", err)
 				} else if resp.StatusCode != 201{
 					fmt.Printf("Could not queue download status code: %d\n", resp.StatusCode)
 				} else {
@@ -142,20 +130,13 @@ func getSearch()([]SearchUserFiles, error){
 
 func checkSearchResults(id string)([]SearchUserFiles, error){
 	searchComplete := false
-	url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/searches/%s", id)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating request: %v\n", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
 	for !searchComplete {
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/searches/%s", id), nil)
+		defer resp.Body.Close()
 		if err != nil {
-			return nil, fmt.Errorf("Error making GET request: %v\n", err)
+			return nil, fmt.Errorf("Error  checking search result: %v\n", err)
 		}
 
-		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Error reading response body: %v\n", err)
@@ -173,20 +154,12 @@ func checkSearchResults(id string)([]SearchUserFiles, error){
 	}
 
 	var data []SearchUserFiles
-	url = fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/searches/%s/responses", id)
-	req, err = http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating request: %v\n", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
 	for data == nil {
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/searches/%s/responses", id), nil)
+		defer resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("Error making GET request: %v\n", err)
 		}
-		defer resp.Body.Close()
 		status := resp.StatusCode
 		if status != 200 {
 			fmt.Printf("Failed to Grab Search, StatusCode: %d", status)
@@ -226,33 +199,19 @@ func getStorageSize()(int64){
 	return size
 }
 
-func sendSearch(search string)(string, int, error) {
-	url := "http://web-graffiti-gluetun:5554/api/v0/searches"
-	
+func sendSearch(search string)(string, int, error) {	
 	data := SearchRequest{
 		Id: uuid.New().String(),
 		SearchText: search,
 	}
 
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		return "", 0, fmt.Errorf("Error marshalling JSON: %v\n", err)
-	}
-
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return "", 0, fmt.Errorf("Error creating request: %v\n", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
 	for {
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := send(http.MethodPost, "http://web-graffiti-gluetun:5554", "api/v0/searches", data)
+		defer resp.Body.Close()
 		if err != nil {
-			fmt.Printf("Error making POST request: %v\n", err)
+			fmt.Printf("Error sending search: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
-			defer resp.Body.Close()
 			return data.Id, resp.StatusCode, nil
 		}
 	}

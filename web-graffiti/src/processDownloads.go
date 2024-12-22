@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -41,22 +40,13 @@ func processDownloads() {
 }
 
 func fetchActiveDownloads() ([]UserTransfer, error) {
-	url := "http://web-graffiti-gluetun:5554/api/v0/transfers/downloads"
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Error creating request: %v\n", err)
-	}
-
 	for {
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/transfers/downloads", nil)
+		defer resp.Body.Close()
 		if err != nil {
-			fmt.Printf("Error making GET request: %v\n", err)
+			fmt.Printf("Error fetching downloads: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
-			defer resp.Body.Close()
-
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return nil, fmt.Errorf("Error reading response body: %v\n", err)
@@ -136,22 +126,10 @@ func retryDownload(fileDownload FileTransfer, downloadTracker map[string]time.Ti
 		Size: fileDownload.Size,
 	})
 
-	jsonData, err := json.Marshal(requests)
+	resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/transfers/downloads/%s", requests)
+	defer resp.Body.Close()
 	if err != nil {
-		return false, fmt.Errorf("Error marshalling JSON: %v\n", err)
-	}
-
-	url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s", fileDownload.UserName)
-	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return false, fmt.Errorf("Error creating request: %v\n", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return false, fmt.Errorf("Error making POST request: %v\n", err)
+		return false, fmt.Errorf("Error fetching downloads: %v\n", err)
 	} else if resp.StatusCode != 201{
 		return false, fmt.Errorf("Could not queue download status code: %d\n", resp.StatusCode)
 	}
@@ -186,17 +164,10 @@ func addMetaData(file FileTransfer) {
 func clearDownload(directoryDownload DirectoryTransfer, downloadTracker map[string]time.Time)  {
 	for _, fileDownload := range directoryDownload.Files {
 		for {
-			url := fmt.Sprintf("http://web-graffiti-gluetun:5554/api/v0/transfers/downloads/%s/%s?remove=true", fileDownload.UserName, fileDownload.Id)
-		
-			req, err := http.NewRequest(http.MethodDelete, url, nil)
-			if err != nil {  
-				fmt.Printf("Error creating request: %v\n", err)
-			}
-
-			client := &http.Client{}
-			resp, err := client.Do(req)
+			resp, err := send(http.MethodDelete, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/transfers/downloads/%s/%s?remove=true", fileDownload.UserName, fileDownload.Id), nil)
+			defer resp.Body.Close()
 			if err != nil {
-				fmt.Printf("Error making DELETE request: %v\n", err)
+				fmt.Printf("Error clearing download: %v\n", err)
 			} else if resp.StatusCode != 204{
 				fmt.Printf("Could not remove download. Status code: %d\n", resp.StatusCode)
 				break
