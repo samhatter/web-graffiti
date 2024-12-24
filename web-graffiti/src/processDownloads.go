@@ -126,7 +126,7 @@ func retryDownload(fileDownload FileTransfer, downloadTracker map[string]time.Ti
 		Size: fileDownload.Size,
 	})
 
-	resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/transfers/downloads/%s", requests)
+	resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/transfers/downloads/%s", fileDownload.UserName), requests)
 	
 	if err != nil {
 		return false, fmt.Errorf("Error fetching downloads: %v\n", err)
