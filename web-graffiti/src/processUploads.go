@@ -55,11 +55,11 @@ func processUploads() {
 func fetchUploads() (map[string]int, error) {
 	for {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/transfers/uploads?includeRemoved=true", nil)
-		defer resp.Body.Close()
 		if err != nil {
 			fmt.Printf("Error fetching uploads: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
+			defer resp.Body.Close()
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return nil, fmt.Errorf("Error reading response body: %v\n", err)
@@ -87,11 +87,11 @@ func fetchUploads() (map[string]int, error) {
 func fetchShares() (map[string]int, error) {
 	for {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/shares/contents", nil)
-		defer resp.Body.Close()
 		if err != nil {
 			fmt.Printf("Error fetching shares: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
+			defer resp.Body.Close()
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
 				return nil, fmt.Errorf("Error reading response body: %v\n", err)

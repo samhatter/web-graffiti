@@ -88,7 +88,7 @@ func startDownloads(result []SearchUserFiles)(error) {
 					})
 				}
 				resp, err := send(http.MethodPost, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/transfers/downloads/%s", userFiles.UserName), requests)
-				defer resp.Body.Close()
+				
 				if err != nil {
 					fmt.Printf("Error Queueing Download: %v\n", err)
 				} else if resp.StatusCode != 201{
@@ -96,6 +96,7 @@ func startDownloads(result []SearchUserFiles)(error) {
 				} else {
 					downloadedSize += folderSize
 				}
+				defer resp.Body.Close()
 			} 
 		}
 	}
@@ -132,11 +133,10 @@ func checkSearchResults(id string)([]SearchUserFiles, error){
 	searchComplete := false
 	for !searchComplete {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/searches/%s", id), nil)
-		defer resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("Error  checking search result: %v\n", err)
 		}
-
+		defer resp.Body.Close()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("Error reading response body: %v\n", err)
@@ -156,10 +156,10 @@ func checkSearchResults(id string)([]SearchUserFiles, error){
 	var data []SearchUserFiles
 	for data == nil {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/searches/%s/responses", id), nil)
-		defer resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("Error making GET request: %v\n", err)
 		}
+		defer resp.Body.Close()
 		status := resp.StatusCode
 		if status != 200 {
 			fmt.Printf("Failed to Grab Search, StatusCode: %d", status)
@@ -207,11 +207,11 @@ func sendSearch(search string)(string, int, error) {
 
 	for {
 		resp, err := send(http.MethodPost, "http://web-graffiti-gluetun:5554", "api/v0/searches", data)
-		defer resp.Body.Close()
 		if err != nil {
 			fmt.Printf("Error sending search: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
+			defer resp.Body.Close()
 			return data.Id, resp.StatusCode, nil
 		}
 	}
