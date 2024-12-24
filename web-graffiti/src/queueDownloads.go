@@ -50,9 +50,9 @@ func startDownloads(result []SearchUserFiles)(error) {
 	targetSize = targetSize*GiB
 	fmt.Printf("Target Storage Size: %d\n", targetSize)
 
-	chunkSize, err := strconv.Atoi(os.Getenv("CHUNK_SIZE"))
+	chunkSize, err := strconv.Atoi(os.Getenv("DOWNLOAD_CHUNK_SIZE"))
 	if err != nil {
-		fmt.Printf("Error Reading CHUNK_SIZE%v\n", err)
+		fmt.Printf("Error Reading DOWNLOAD_CHUNK_SIZE%v\n", err)
 		chunkSize = 1
 	}
 	chunkSize = chunkSize*GiB
