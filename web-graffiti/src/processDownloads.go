@@ -43,7 +43,6 @@ func fetchActiveDownloads() ([]UserTransfer, error) {
 	for {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/transfers/downloads", nil)
 		if err != nil {
-			resp.Body.Close()
 			fmt.Printf("Error fetching downloads: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
@@ -128,11 +127,14 @@ func retryDownload(fileDownload FileTransfer, downloadTracker map[string]time.Ti
 	})
 
 	resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/transfers/downloads/%s", fileDownload.UserName), requests)
-	resp.Body.Close()
 
 	if err != nil {
 		return false, fmt.Errorf("Error fetching downloads: %v\n", err)
-	} else if resp.StatusCode != 201{
+	} else {
+		resp.Body.Close()
+	}
+
+	if resp.StatusCode != 201{
 		return false, fmt.Errorf("Could not queue download status code: %d\n", resp.StatusCode)
 	}
 
@@ -167,16 +169,18 @@ func clearDownload(directoryDownload DirectoryTransfer, downloadTracker map[stri
 	for _, fileDownload := range directoryDownload.Files {
 		for {
 			resp, err := send(http.MethodDelete, "http://web-graffiti-gluetun:5554", fmt.Sprintf("api/v0/transfers/downloads/%s/%s?remove=true", fileDownload.UserName, fileDownload.Id), nil)
-			resp.Body.Close()
 			if err != nil {
 				fmt.Printf("Error clearing download: %v\n", err)
-			} else if resp.StatusCode != 204{
+			} else {
+				resp.Body.Close()
+			}
+
+			if resp.StatusCode != 204{
 				fmt.Printf("Could not remove download. Status code: %d\n", resp.StatusCode)
 				break
 			} else {
 				break
 			}
-			time.Sleep(1)
 		}
 	}
 
@@ -188,6 +192,10 @@ func clearDownload(directoryDownload DirectoryTransfer, downloadTracker map[stri
 	err := os.Rename(src, dst)
 	if err != nil {
 		fmt.Printf("Failed to move dir: %v\n", err)
+		err = os.RemoveAll(src)
+		if err != nil {
+			fmt.Printf("Failed to remove dir: %v\n", err)
+		}
 	}
 	
 	for _, fileDownload := range directoryDownload.Files {

@@ -37,8 +37,6 @@ services:
       - SLSKD_REMOTE_CONFIGURATION=true
       - SLSKD_HTTP_PORT=5554
       - SLSKD_DISK_LOGGER=true
-      - SLSKD_NO_AUTH=true
-      - SLSKD_SWAGGER=true
       - SLSKD_UPLOAD_SPEED_LIMIT=1000000
       - SLSKD_DOWNLOAD_SPEED_LIMIT=1000000
       - SLSKD_UPLOAD_SLOTS=500
@@ -46,8 +44,7 @@ services:
     env_file:
       - ./secrets/slskd.env
     volumes:
-      - /storage/web-graffiti:/storage
-      - /storage/media/tv:/storage/tv
+      - ./storage/web-graffiti:/storage
       - ./slskd:/app
     depends_on:
       - web-graffiti-gluetun
@@ -60,9 +57,9 @@ services:
       - web-graffiti-network
     environment:
       - TARGET_SIZE=10000 #GiB
-      - DOWNLOAD_CHUNK_SIZE=100 #GiB
+      - DOWNLOAD_CHUNK_SIZE=1 #GiB
       - REMOVE_CHUNK_SIZE=10 #GiB
-      - UPDATE_PORT_TIMER=30 #Minutes
+      - UPDATE_PORT_TIMER=5 #Minutes
       - QUEUE_DOWNLOADS_TIMER=2 #Hours
       - PROCESS_DOWNLOADS_TIMER=30 #Minutes
       - PROCESS_UPLOADS_TIMER=12 #Hours
@@ -73,7 +70,7 @@ services:
       - ./secrets/web-graffiti.env
     volumes:
       - ./slskd:/slskd
-      - /storage/web-graffiti:/storage
+      - ./storage/web-graffiti:/storage
     depends_on:
       - web-graffiti-slskd
     restart:

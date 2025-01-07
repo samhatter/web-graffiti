@@ -56,7 +56,6 @@ func fetchUploads() (map[string]int, error) {
 	for {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/transfers/uploads?includeRemoved=true", nil)
 		if err != nil {
-			resp.Body.Close()
 			fmt.Printf("Error fetching uploads: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {
@@ -89,7 +88,6 @@ func fetchShares() (map[string]int, error) {
 	for {
 		resp, err := send(http.MethodGet, "http://web-graffiti-gluetun:5554", "api/v0/shares/contents", nil)
 		if err != nil {
-			resp.Body.Close()
 			fmt.Printf("Error fetching shares: %v\n", err)
 			time.Sleep(1*time.Second)
 		} else {

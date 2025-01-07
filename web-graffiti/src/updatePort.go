@@ -72,18 +72,13 @@ func setPort(port string) (error){
 	}
 
 	resp, err := send(http.MethodPut, "http://web-graffiti-gluetun:5554", "api/v0/application", nil)
+	resp.Body.Close()
 	if err != nil {
-		return fmt.Errorf("Error restarting application: %v\n", err)
-	}
-	defer resp.Body.Close()
-
-	_, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("Error reading response body: %v\n", err)
+		return fmt.Errorf("Error restarting slskd: %v\n", err)
 	}
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Error Restarting slskd: Status Code %d\n", resp.StatusCode)
+		return fmt.Errorf("Error restarting slskd: Status Code %d\n", resp.StatusCode)
 	}
 
 	fmt.Printf("Port Successfully Changed to %s\n", port)
@@ -111,8 +106,9 @@ func fetchPort() (string, error) {
 		return "", fmt.Errorf("error sending request: %v\n", err)
 	}
 
-	defer resp.Body.Close()
+	
 	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
 	if err != nil {
 		return "", fmt.Errorf("error reading response body: %v\n", err)
 	}

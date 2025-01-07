@@ -1,5 +1,13 @@
 soulseek:
   listen_port: 56541
+web:
+  authentication:
+    disabled: false
+    username: slskd
+    password: slskd
+    api_keys:
+      my_api_key:
+        key: yourapitokenhere
 
 
       

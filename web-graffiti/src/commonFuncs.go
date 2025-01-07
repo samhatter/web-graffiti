@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"os"
 )
 
 func randomizeKeys(inputMap map[string][]SearchFile) []string {
@@ -34,6 +35,8 @@ func scanShares() {
 func send(method string, base string, endpoint string, data any) (*http.Response, error){
 	url := fmt.Sprintf("%s/%s", base, endpoint)
 
+	token := os.Getenv("SLSKD_API_KEY")
+
 	var req *http.Request
 	if data != nil {
 		jsonData, err := json.Marshal(data)
@@ -52,7 +55,8 @@ func send(method string, base string, endpoint string, data any) (*http.Response
 			return nil, fmt.Errorf("Error creating request: %v\n", err)
 		}
 	}
-		
+	
+	req.Header.Set("X-API-Key", token)
 
 	client := &http.Client{}
 	
