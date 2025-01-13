@@ -134,7 +134,7 @@ func retryDownload(fileDownload FileTransfer, downloadTracker map[string]time.Ti
 		resp.Body.Close()
 	}
 
-	if resp.StatusCode != 201{
+	if resp.StatusCode != 201 && resp.StatusCode != 200 {
 		return false, fmt.Errorf("Could not queue download status code: %d\n", resp.StatusCode)
 	}
 

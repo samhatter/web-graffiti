@@ -75,7 +75,7 @@ func startDownloads(result []SearchUserFiles)(error) {
 			folder := folderMap[folderName]
 			folderSize := 0
 			for _, file := range folder {
-					folderSize += file.Size
+				folderSize += file.Size
 			}
 			if len(folder) > 5 && (int64(folderSize) < (int64(chunkSize) - int64(downloadedSize)) && int64(folderSize) < (int64(targetSize) - int64(storageSize) - int64(downloadedSize)) && foldersDownloaded < maxFoldersPerUser) {
 				foldersDownloaded += 1
@@ -95,12 +95,11 @@ func startDownloads(result []SearchUserFiles)(error) {
 					resp.Body.Close()
 				}
 
-				if resp.StatusCode != 201{
+				if resp.StatusCode != 201 && resp.StatusCode != 200{
 					fmt.Printf("Could not queue download status code: %d\n", resp.StatusCode)
 				} else {
 					downloadedSize += folderSize
 				}
-				
 			} 
 		}
 	}
