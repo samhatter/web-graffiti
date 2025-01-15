@@ -57,12 +57,12 @@ services:
       - web-graffiti-network
     environment:
       - TARGET_SIZE=10000 #GiB
-      - DOWNLOAD_CHUNK_SIZE=1 #GiB
+      - DOWNLOAD_CHUNK_SIZE=100 #GiB
       - REMOVE_CHUNK_SIZE=10 #GiB
-      - UPDATE_PORT_TIMER=5 #Minutes
-      - QUEUE_DOWNLOADS_TIMER=2 #Hours
+      - UPDATE_PORT_TIMER=30 #Minutes
+      - QUEUE_DOWNLOADS_TIMER=6 #Hours
       - PROCESS_DOWNLOADS_TIMER=30 #Minutes
-      - PROCESS_UPLOADS_TIMER=12 #Hours
+      - PROCESS_UPLOADS_TIMER=6 #Hours
       - MAX_FOLDERS_PER_USER=1
       - MAX_DOWNLOAD_TIME=4 #Hours
       - SLSKD_DOWNLOADS_DIR=/storage/downloads
